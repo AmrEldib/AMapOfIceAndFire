@@ -23,6 +23,8 @@
             "dijit/TooltipDialog",
             "esri/layers/GraphicsLayer",
             "esri/geometry/Extent",
+            "esri/tasks/query",
+            "esri/tasks/QueryTask",
 
             "dijit/layout/ContentPane",
             "dojo/domReady!"
@@ -50,7 +52,9 @@
             domStyle,
             TooltipDialog,
             GraphicsLayer,
-            Extent
+            Extent,
+            Query,
+            QueryTask
         ) {
 
     parser.parse();
@@ -81,10 +85,18 @@
     var tiled = new Tiled("http://tiles.arcgis.com/tiles/EgePHk52tsFjmhbJ/arcgis/rest/services/GoT_Basemap/MapServer");
     map.addLayer(tiled);
 
+    var featureServiceList = [
+      "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/0",
+      "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/1",
+      "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/2",
+      "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/3",
+      "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/4"
+    ]
+
     var infoTemplate = new InfoTemplate();
 
     // Cities Layer
-    var city_rest = "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/0";
+    var city_rest = featureServiceList[0];
     var cityLayer = new FeatureLayer(city_rest, {
         mode: FeatureLayer.MODE_SNAPSHOT,
         infoTemplate: infoTemplate,
@@ -95,7 +107,7 @@
     map.addLayer(cityLayer);
 
     // Castles Layer
-    var castle_rest = "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/1";
+    var castle_rest = featureServiceList[1];
     var castleLayer = new FeatureLayer(castle_rest, {
         mode: FeatureLayer.MODE_SNAPSHOT,
         infoTemplate: infoTemplate,
@@ -106,7 +118,7 @@
     map.addLayer(castleLayer);
 
     // Town Layer
-    var town_rest = "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/2";
+    var town_rest = featureServiceList[2];
     var townLayer = new FeatureLayer(town_rest, {
         mode: FeatureLayer.MODE_SNAPSHOT,
         infoTemplate: infoTemplate,
@@ -117,7 +129,7 @@
     map.addLayer(townLayer);
 
     // Ruin Layer
-    var ruin_rest = "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/3";
+    var ruin_rest = featureServiceList[3];
     var ruinLayer = new FeatureLayer(ruin_rest, {
         mode: FeatureLayer.MODE_SNAPSHOT,
         infoTemplate: infoTemplate,
@@ -128,7 +140,7 @@
     map.addLayer(ruinLayer);
 
     // 'Other' Layer
-    var other_rest = "http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer/4";
+    var other_rest = featureServiceList[4];
     var otherLayer = new FeatureLayer(other_rest, {
         mode: FeatureLayer.MODE_SNAPSHOT,
         infoTemplate: infoTemplate,
@@ -153,7 +165,7 @@
         highlightSymbol.setOutline(null);
         highlightSymbol.setSize("35");
 
-        console.log(evt.graphic);
+        //console.log(evt.graphic);
 
         var t = "<b>${Name}</b>";
 
@@ -169,7 +181,6 @@
             x: evt.pageX,
             y: evt.pageY
         });
-
     };
 
     function hidePointName() {
@@ -212,7 +223,7 @@
             xhr(["data", fcType, fcName + ".json"].join("/"), {
                 handleAs: "json"
             }).then(function (data) {
-                console.log(data);
+                //console.log(data);
                 // Popup Title
                 document.getElementById("popTitle").innerHTML = data.name;
                 // Popup Body
@@ -242,7 +253,7 @@
     function generateImageGallery(data) {
         // fancybox Image Gallery
         var galleryString = "<div id='tabPictures'><div><div class='pictureGallery'>";
-        //galleryString += 
+        //galleryString +=
         data.images.forEach(function (element, index) {
             var picPosition = "pictureStackUnder";
             if (index == 1) { picPosition = "pictureStackOver"; }
@@ -266,4 +277,87 @@
     });
 
     $(".credits").fancybox();
+
+    //Search box event listener
+    on(dom.byId("executeSearch"), "click", executeSearch);
+
+    //Enter key triggers search button click
+    $("#searchInput").keyup(function(event){
+      if(event.which == 13){
+          $("#executeSearch").click();
+      }
+    });
+
+    function executeSearch() {
+      //Url of FeatureServer NOT into individual layer ids
+      var queryTask = new QueryTask("http://services.arcgis.com/EgePHk52tsFjmhbJ/ArcGIS/rest/services/GoTFeatures_FINAL/FeatureServer");
+      var query = new Query();
+      query.outFields = [
+      	"OBJECTID", "Name", "Type"
+      ];
+
+      //Handles single apostrophe in feature name for valid sql where clause
+      searchInputName = dom.byId("searchInput").value.replace("'", "''");
+
+      // var layerDefinition = [
+      //   {"layerId" : 0, "where" : "Name LIKE '%" + searchInputName + "%'", "outFields" : "*"},
+      //   {"layerId" : 1, "where" : "Name LIKE '%" + searchInputName + "%'", "outFields" : "*"},
+      //   {"layerId" : 2, "where" : "Name LIKE '%" + searchInputName + "%'", "outFields" : "*"},
+      //   {"layerId" : 3, "where" : "Name LIKE '%" + searchInputName + "%'", "outFields" : "*"},
+      //   {"layerId" : 4, "where" : "Name LIKE '%" + searchInputName + "%'", "outFields" : "*"}
+      // ]
+
+      //This works when specifying which layer to set expression on
+      //Could be useful for displaying results
+      //cityLayer.setDefinitionExpression("Name = 'King''s Landing'");
+
+      //query.where = "Name LIKE '%" + searchInputName + "%'";
+
+      //Queries do not work when the queryTask url does not specify a layer id
+      //queryTask.execute(layerDefinition, showResults);
+      //queryTask.execute(query, showResults);
+    }
+
+    function showResults(results) {
+      console.log(results);
+    }
+
+
+    // function executeSearch () {
+		// 	for (i = 0; i < featureServiceList.length; i++) {
+    //     var queryTask = new QueryTask(featureServiceList[i]);
+		// 		var query = new Query();
+		// 		query.returnGeometry = true;
+		// 		query.outFields = [
+		// 		  "OBJECTID", "Name", "Type"
+		// 		];
+    //     //Handles single apostrophe in feature name for valid sql where clause
+    //     searchInputName = dom.byId("searchInput").value.replace("'", "''");
+		// 		query.where = "Name = '" + searchInputName + "'";
+    //     var queryCounter = 0;
+    //     var querySuccess = false;
+    //     queryTask.execute(query, function(results){
+    //       return results.features[0];
+    //     }).then(function(featureReturn) {
+    //       queryCounter += 1;
+    //       if (featureReturn.features.length) {
+    //         querySuccess = true;
+    //
+    //         //Select feature on map
+    //         //console.log(query);
+    //         featureReturn.features[0].selectFeatures(query, FeatureLayer.SELECTION_NEW);
+    //         //Map.centerAt(featureReturn.features.geometry);
+    //
+    //         //Call popup card
+    //         displayPopupContent(featureReturn.features[0]);
+    //       } else if (!querySuccess && queryCounter == 5) {
+    //         //Insert better styling here (red shadow) to prompt user
+    //         //that the query did not return any results
+    //         $("#searchInput").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+    //       }
+    //     });
+		// 	}
+    // }
+
+
 });
