@@ -26,22 +26,25 @@
 
     <script src="http://js.arcgis.com/3.10/"></script>
     <script src="script/map.js"></script>
-    
+
 </head>
 
 <body class="claro">
     <div id="mapDiv">
+        <div id="searchInputDiv" class="searchFloatingContainer">
+          <input id="searchInput" type="search" name="search" tabindex="1" autofocus placeholder="Search Features"/>
+          <button id="executeSearch" class="searchButton"/>
+        </div>
         <div id="panel" class="topRightFloatingContainer">
             <div class="popBody">
                 <div class="popBodyContent">
                     <div id="popSummary"></div>
                 </div>
             </div>
-            
+
             <div id="popTitle" class="popTitle"></div>
         </div>
-
-        <ul style="list-style: none;">
+        <ul class="creditsList">
             <li>
                 <a class="credits" href="#creditsPopup"><img src="images/CreativeCommonsLogo.png" /></a>
             </li>

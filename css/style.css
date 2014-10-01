@@ -47,6 +47,11 @@ a:focus {
     display: none;
 }
 
+.creditsList{
+  list-style: none;
+  margin: 0px;
+}
+
 .credits {
     position: absolute;
     bottom: 10px;
@@ -110,7 +115,7 @@ a:focus {
     #popSummary p {
         padding: 12px;
     }
-    
+
 .pictureGallery {
     position: relative;
     min-height: 170px;
@@ -130,4 +135,22 @@ a:focus {
 .pictureStackUnder {
     width: 120px;
     height: 120px;
+}
+
+.searchFloatingContainer {
+    position: absolute;
+    top: 20px;
+    left: 57px;
+    width: 510px;
+    padding-left:10px;
+    padding-right:10px;
+    z-index: 50;
+    margin: 0 auto;
+}
+
+.searchButton {
+  background-image: "../images/searchIcon.png";
+  background-repeat: no-repeat;
+  width: 15px;
+  height: 15px;
 }
